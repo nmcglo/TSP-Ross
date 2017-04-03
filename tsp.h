@@ -21,10 +21,17 @@ Neil McGlohon
 //STRUCTS ------------------------------
 
 
+//TODO order the declarations to optimize memory usage
 typedef struct
 {
-
-
+     unsigned int self_place;
+     unsigned int self_city;
+     unsigned int rng_count;
+     unsigned int min_tour_weight;
+     unsigned int num_incoming_neighbors;
+     unsigned int* incomingWeights; //TODO for generalization, make into double
+     tw_lpid* neighborIDs;
+     tw_lpid* min_tour;
 } tsp_actor_state;
 
 
@@ -32,16 +39,22 @@ typedef struct
 {
      tw_lpid sender;
      tw_lpid recipient;
+
      tsp_actor_state encodedState;
+     tw_lpid* tour_history; //TODO consider hash set implementation for optimization
 } tsp_mess;
 
 
 //MAPPING -----------------------------
-
+extern tw_peid tsp_map(tw_lpid gid);
 
 
 //DRIVER STUFF -----------------------------
-
+extern void tsp_init (tsp_actor_state *s, tw_lp *lp);
+extern void tsp_prerun(tsp_actor_state *s, tw_lp *lp);
+extern void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
+extern void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
+extern void tsp_final(tsp_actor_state *s, tw_lp *lp);
 
 
 //IO STUFF --------------------------------
@@ -54,6 +67,13 @@ extern tw_lptype model_lps[];
 tw_stime lookahead;
 unsigned int nlp_per_pe;
 unsigned int custom_LPs_per_pe;
+unsigned int total_actors;
+unsigned int total_cities;
+
+
+//GLOBALS
+
+int** weight_matrix;
 
 
 
