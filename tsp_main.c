@@ -33,7 +33,7 @@ int max_fanout= 4;
 
 //Command line opts
 const tw_optdef model_opts[] = {
-     TWOPT_GROUP("Mail Model"),
+     TWOPT_GROUP("TSP Models"),
      TWOPT_UINT("cities", num_cities, "Total cities in simulation"),
      TWOPT_UINT("minfanout", min_fanout, "Min Fanout of graph nodes (Not implemented yet)"),
      TWOPT_UINT("maxfanout", max_fanout, "Max Fanout of graph nodes (Not Implemented yet)"),
@@ -53,12 +53,17 @@ void displayModelSettings()
           printf("\n");
 
           printf("Traveling Salesman Problem Solver Configuration:\n");
-          printf("\tnnodes: %i\n", tw_nnodes());
-          printf("\tg_tw_nlp: %lu\n", g_tw_nlp);
-
-          printf("\tNLPs per PE: %i\n", nlp_per_pe);
-
+          printf("\tnnodes:       %i\n", tw_nnodes());
+          printf("\tg_tw_nlp:     %lu\n", g_tw_nlp);
+          printf("\tNLPs per PE:  %i\n", nlp_per_pe);
           printf("\tTotal Actors: %i\n", total_actors);
+          printf("\tTotal Cities: %i\n", num_cities);
+
+          printf("\tAvl node count: %i\n", g_tw_avl_node_count);
+
+          // printf("\tMin Fanout:   %i\n", min_fanout);
+          // printf("\tMax Fanout:   %i\n", max_fanout);
+
 
           //Put your settings to print here
 
@@ -71,31 +76,36 @@ void displayModelSettings()
      }
 }
 
+//DO NOT USE THIS METHOD WITHIN AN LP
+int rand_range(int low, int high)
+{
+     return((int) (rand() % (high-low+1)) + low);
+}
+
 void initialize()
 {
      total_cities = num_cities;
 
-     unsigned int W[4][4] = {
-          {0,6,8,11},
-          {6,0,7,9},
-          {8,7,0,5},
-          {11,9,5,0}
-     };
 
-     weight_matrix = (int**) calloc(4,sizeof(int*));
+     weight_matrix = (int**) calloc(num_cities,sizeof(int*));
      int i;
-     for(i = 0; i < 4; i++)
+     for(i = 0; i < num_cities; i++)
      {
-         weight_matrix[i] = (int*)calloc(4,sizeof(int));
+         weight_matrix[i] = (int*)calloc(num_cities,sizeof(int));
      }
 
-     for(i = 0; i < 4; i++)
+     srand(100);
+
+     //make symmetrical graph with random integer weights
+     for(int i = 0; i < num_cities; i++)
      {
-        int j;
-         for(j = 0; j < 4; j++)
-         {
-             weight_matrix[i][j] = W[i][j];
-         }
+          for(int j = 0; j < num_cities; j++)
+          {
+               if(j > i)
+                    weight_matrix[i][j] = rand_range(MIN_CITY_SEPARATION,MAX_CITY_SEPARATION); //rand int in [MIN, MAX]
+               else if(i > j)
+                    weight_matrix[i][j] = weight_matrix[j][i];
+          }
      }
 }
 
@@ -105,7 +115,7 @@ void initialize()
 #define lif_main main
 int lif_main(int argc, char** argv, char **env)
 {
-     // tw_opt_add(model_opts);
+     tw_opt_add(model_opts);
      tw_init(&argc, &argv);
 
      initialize();
@@ -113,13 +123,16 @@ int lif_main(int argc, char** argv, char **env)
      nlp_per_pe = 1;
      custom_LPs_per_pe = 1;
 
+
      g_tw_events_per_pe = 1000000;
+     // g_tw_avl_node_count = g_tw_avl_node_count * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2;
 
      total_actors = total_cities*total_cities + total_cities; //N^2 + N, One for each city-position, and one for each ending city
 
      g_tw_nlp = (total_actors);
      g_tw_lookahead = .0001;
      custom_LPs_per_pe = (g_tw_nlp / g_tw_npe)/tw_nnodes();
+     nlp_per_pe = custom_LPs_per_pe;
 
      displayModelSettings();
 

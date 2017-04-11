@@ -16,7 +16,11 @@ Neil McGlohon
 #define FALSE 0
 #define TRUE 1
 
-#define MAX_TOUR_LENGTH 100
+#define MAX_TOUR_LENGTH 20
+#define MIN_CITY_SEPARATION 4
+#define MAX_CITY_SEPARATION 11
+
+#define MSG_TIME_DELAY 100
 
 
 
@@ -65,6 +69,9 @@ extern void tsp_final(tsp_actor_state *s, tw_lp *lp);
 
 
 //MAIN STUFF-----------------------------
+
+extern int rand_range(int low, int high);
+
 
 extern tw_lptype model_lps[];
 
