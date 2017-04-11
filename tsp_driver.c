@@ -84,11 +84,15 @@ int is_in_tour(int* tour, int len, int input)
      for(int i = 0; i<len; i++)
      {
           if(tour[i] == input)
+          {
                return 1;
+               break;
+          }
      }
 
      return 0;
 }
+
 
 void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
 {
@@ -122,12 +126,21 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
           }
      }
 
-     int new_tour_weight = in_msg->tour_weight + s->incomingWeights[neighborIndex];
+     int new_tour_weight;
+     if(s->self_place > 0)
+          new_tour_weight = in_msg->tour_weight + s->incomingWeights[neighborIndex];
+     else
+          new_tour_weight = 0;
+
      // printf("%d\n",new_tour_weight);
-     if(new_tour_weight < s->min_tour_weight)
+
+     if(s->self_place == total_cities)
      {
-          s->min_tour_weight = new_tour_weight;
-          s->min_tour = working_tour;
+          if(new_tour_weight < (s->min_tour_weight))
+          {
+               s->min_tour_weight = new_tour_weight;
+               s->min_tour = working_tour;
+          }
      }
 
      //forward to the neighbors not currently in the tour
@@ -194,7 +207,7 @@ void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp
 void tsp_final(tsp_actor_state *s, tw_lp *lp)
 {
      int self = lp->gid;
-     if(s->self_place == total_cities-1)
+     if(s->self_place == total_cities)
      {
           printf("%d: Min Tour Weight: %d\n",s->self_city,s->min_tour_weight);
 
