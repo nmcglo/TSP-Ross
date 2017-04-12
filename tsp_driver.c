@@ -161,6 +161,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
 
                if(found == 0)
                {
+                    s->msgs_sent++;
                     // for(int i = 0; i < total_cities+1; i++)
                     // {
                     //      printf("%d ",working_tour[i]);
@@ -181,13 +182,14 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                          mess->tour_history[j] = working_tour[j];
                     }
                     tw_event_send(e);
-                    s->msgs_sent++;
                }
           }
 
           if(s->self_place == total_cities-1) //then you need to send to the original city
           {
                tw_lpid recipient = get_lp_gid(working_tour[0],s->self_place+1);
+               s->msgs_sent++;
+
 
                // printf("%d: ",s->self_city);
                // for(int i = 0; i < total_cities+1; i++)
@@ -207,7 +209,6 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                     mess->tour_history[j] = working_tour[j];
                }
                tw_event_send(e);
-               s->msgs_sent++;
           }
      }
 
@@ -243,8 +244,10 @@ void tsp_final(tsp_actor_state *s, tw_lp *lp)
                printf("%d ",s->min_tour[i]);
           }
           printf("\n");
+
+          printf("%d: Complete Tours: %d\n",s->self_city,s->complete_tour_msgs_rcvd);
+
      }
-     printf("%d: Complete Tours: %d\n",s->self_city,s->complete_tour_msgs_rcvd);
 
 
 }
