@@ -20,7 +20,7 @@ Neil McGlohon
 #define MIN_CITY_SEPARATION 4
 #define MAX_CITY_SEPARATION 11
 
-#define MSG_TIME_DELAY 100
+#define MSG_TIME_DELAY 1000
 
 
 
@@ -35,6 +35,8 @@ typedef struct
      int rng_count;
      int min_tour_weight;
      int num_neighbors;
+     int msgs_sent;
+     unsigned int complete_tour_msgs_rcvd;
      int* incomingWeights; //TODO for generalization, make into double
      tw_lpid* neighborIDs;
      int* min_tour;
@@ -46,8 +48,8 @@ typedef struct
      tw_lpid sender;
      tw_lpid recipient;
      int tour_weight;
-     tsp_actor_state encodedState;
      int tour_history[MAX_TOUR_LENGTH]; //TODO consider hash set implementation for optimization
+     tsp_actor_state encodedState;
 } tsp_mess;
 
 
@@ -62,6 +64,7 @@ extern void tsp_init (tsp_actor_state *s, tw_lp *lp);
 extern void tsp_prerun(tsp_actor_state *s, tw_lp *lp);
 extern void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
 extern void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
+extern void tsp_commit(tsp_actor_state*s, tw_lp *lp);
 extern void tsp_final(tsp_actor_state *s, tw_lp *lp);
 
 

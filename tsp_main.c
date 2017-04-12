@@ -15,7 +15,7 @@ tw_lptype model_lps[] =
           (pre_run_f) tsp_prerun,
           (event_f) tsp_event_handler,
           (revent_f) tsp_RC_event_handler,
-          (commit_f) NULL,
+          (commit_f) tsp_commit,
           (final_f) tsp_final,
           (map_f) tsp_map,
           sizeof(tsp_actor_state)
