@@ -37,9 +37,9 @@ typedef struct
      int num_neighbors;
      int msgs_sent;
      unsigned int complete_tour_msgs_rcvd;
+     int min_tour[MAX_TOUR_LENGTH];
      int* incomingWeights; //TODO for generalization, make into double
      tw_lpid* neighborIDs;
-     int* min_tour;
 } tsp_actor_state;
 
 
@@ -49,7 +49,9 @@ typedef struct
      tw_lpid recipient;
      int tour_weight;
      int tour_history[MAX_TOUR_LENGTH]; //TODO consider hash set implementation for optimization
-     tsp_actor_state encodedState;
+     int saved_min_tour[MAX_TOUR_LENGTH];
+     int saved_min_tour_weight;
+     int saved_rng_count;
 } tsp_mess;
 
 

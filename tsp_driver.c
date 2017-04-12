@@ -24,7 +24,7 @@ void tsp_init (tsp_actor_state *s, tw_lp *lp)
      s->msgs_sent = 0;
      s->incomingWeights = calloc(total_cities,sizeof(int));
      s->neighborIDs = calloc(total_cities,sizeof(tw_lpid));
-     s->min_tour = calloc(total_cities+1,sizeof(int));
+     // s->min_tour = calloc(total_cities+1,sizeof(int));
 
      for(int i = 0; i<total_cities+1;i++)
      {
@@ -98,7 +98,9 @@ int is_in_tour(int* tour, int len, int input)
 
 void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
 {
-     in_msg->encodedState = *s;
+     in_msg->saved_min_tour = s->min_tour;
+     in_msg->saved_min_tour_weight = s->min_tour_weight;
+     in_msg->saved_rng_count = s->rng_count;
 
      // printf("%d,%d: Received Event\n",s->self_city,s->self_place);
 
@@ -162,6 +164,8 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                if(found == 0)
                {
                     s->msgs_sent++;
+                    s->rng_count++;
+
                     // for(int i = 0; i < total_cities+1; i++)
                     // {
                     //      printf("%d ",working_tour[i]);
@@ -189,7 +193,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
           {
                tw_lpid recipient = get_lp_gid(working_tour[0],s->self_place+1);
                s->msgs_sent++;
-
+               s->rng_count++;
 
                // printf("%d: ",s->self_city);
                // for(int i = 0; i < total_cities+1; i++)
@@ -209,6 +213,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                     mess->tour_history[j] = working_tour[j];
                }
                tw_event_send(e);
+
           }
      }
 
@@ -217,14 +222,16 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
 void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
 {
      int cur_rng_count = s->rng_count;
-     int prev_rng_count = (in_msg->encodedState).rng_count;
+     int prev_rng_count = in_msg->saved_rng_count;
      int total_rollbacks_needed = cur_rng_count - prev_rng_count;
 
      for(int i = 0; i<total_rollbacks_needed; i++)
      {
           tw_rand_reverse_unif(lp->rng);
      }
-     s = &(in_msg->encodedState);
+     s->min_tour = in_msg->saved_min_tour;
+     s->min_tour_weight = in_msg->saved_min_tour_weight;
+     s->rng_count = in_msg->saved_rng_count;
 }
 
 void tsp_commit(tsp_actor_state *s, tw_lp *lp)
