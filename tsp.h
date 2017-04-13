@@ -23,7 +23,6 @@ Neil McGlohon
 #define MSG_TIME_DELAY 1000
 
 
-
 //STRUCTS ------------------------------
 
 
@@ -46,12 +45,12 @@ typedef struct
 typedef struct
 {
      tw_lpid sender;
-     tw_lpid recipient;
      int tour_weight;
      int tour_history[MAX_TOUR_LENGTH]; //TODO consider hash set implementation for optimization
      int saved_min_tour[MAX_TOUR_LENGTH];
      int saved_min_tour_weight;
      int saved_rng_count;
+     int saved_complete_tours;
 } tsp_mess;
 
 

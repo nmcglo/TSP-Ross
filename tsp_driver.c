@@ -10,6 +10,15 @@ Neil McGlohon
 #include "tsp.h"
 
 
+
+void copy_int_array(int* src, int* dest, int len)
+{
+     for(int i = 0; i < len; i++)
+     {
+          dest[i] = src[i];
+     }
+}
+
 //--------------LIF Neuron stuff-------------
 
 void tsp_init (tsp_actor_state *s, tw_lp *lp)
@@ -71,7 +80,7 @@ void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
           tw_event *e = tw_event_new(self,init_time,lp);
           tsp_mess *mess = tw_event_data(e);
           mess->sender = self;
-          mess->recipient = self;
+          // mess->recipient = self;
           for(int i = 0; i < total_cities+1; i++)
           {
                mess->tour_history[i] = -1;
@@ -98,9 +107,11 @@ int is_in_tour(int* tour, int len, int input)
 
 void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
 {
-     in_msg->saved_min_tour = s->min_tour;
+     copy_int_array(s->min_tour, in_msg->saved_min_tour, MAX_TOUR_LENGTH);
+     // in_msg->saved_min_tour = s->min_tour;
      in_msg->saved_min_tour_weight = s->min_tour_weight;
      in_msg->saved_rng_count = s->rng_count;
+     in_msg->saved_complete_tours = s->complete_tour_msgs_rcvd;
 
      // printf("%d,%d: Received Event\n",s->self_city,s->self_place);
 
@@ -147,7 +158,8 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
           if(new_tour_weight < (s->min_tour_weight))
           {
                s->min_tour_weight = new_tour_weight;
-               s->min_tour = working_tour;
+               copy_int_array(working_tour,s->min_tour,total_cities+1);
+               // s->min_tour = working_tour;
           }
           s->complete_tour_msgs_rcvd++;
      }
@@ -178,7 +190,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                     tw_event *e = tw_event_new(recipient,tw_rand_unif(lp->rng)*MSG_TIME_DELAY,lp);
                     tsp_mess *mess = tw_event_data(e);
                     mess->sender = lp->gid;
-                    mess->recipient = recipient;
+                    // mess->recipient = recipient;
                     mess->tour_weight = new_tour_weight;
 
                     for(int j = 0; j < total_cities+1;j++)
@@ -205,7 +217,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                tw_event *e = tw_event_new(recipient,tw_rand_unif(lp->rng)*MSG_TIME_DELAY,lp);
                tsp_mess *mess = tw_event_data(e);
                mess->sender = lp->gid;
-               mess->recipient = recipient;
+               // mess->recipient = recipient;
                mess->tour_weight = new_tour_weight;
 
                for(int j = 0; j < total_cities+1;j++)
@@ -229,9 +241,11 @@ void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp
      {
           tw_rand_reverse_unif(lp->rng);
      }
-     s->min_tour = in_msg->saved_min_tour;
+     copy_int_array(in_msg->saved_min_tour, s->min_tour,MAX_TOUR_LENGTH);
+     // s->min_tour = in_msg->saved_min_tour;
      s->min_tour_weight = in_msg->saved_min_tour_weight;
      s->rng_count = in_msg->saved_rng_count;
+     s->complete_tour_msgs_rcvd = in_msg->saved_complete_tours;
 }
 
 void tsp_commit(tsp_actor_state *s, tw_lp *lp)
