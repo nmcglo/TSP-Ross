@@ -10,17 +10,15 @@ Neil McGlohon
 #define _tsp_h
 
 #include "ross.h"
+#include "globals.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include <stdint.h>
 
-#define FALSE 0
-#define TRUE 1
 
-#define MAX_TOUR_LENGTH 20
-#define MIN_CITY_SEPARATION 4
-#define MAX_CITY_SEPARATION 11
-
-#define MSG_TIME_DELAY 1000
 
 
 //STRUCTS ------------------------------
@@ -29,6 +27,9 @@ Neil McGlohon
 //TODO order the declarations to optimize memory usage
 typedef struct
 {
+     uint64_t min_tour[MAX_INTS_NEEDED];
+     int* incomingWeights; //TODO for generalization, make into double
+     tw_lpid* neighborIDs;
      int self_place;
      int self_city;
      int rng_count;
@@ -36,19 +37,14 @@ typedef struct
      int num_neighbors;
      int msgs_sent;
      unsigned int complete_tour_msgs_rcvd;
-     int min_tour[MAX_TOUR_LENGTH];
-     int* incomingWeights; //TODO for generalization, make into double
-     tw_lpid* neighborIDs;
 } tsp_actor_state;
 
 
 typedef struct
 {
-     tw_lpid sender;
+     uint64_t tour_history[MAX_INTS_NEEDED];
      int tour_weight;
-     int tour_history[MAX_TOUR_LENGTH]; //TODO consider hash set implementation for optimization
-     int saved_min_tour[MAX_TOUR_LENGTH];
-     int saved_min_tour_weight;
+     tw_lpid sender;
      int saved_rng_count;
      int saved_complete_tours;
 } tsp_mess;
@@ -58,6 +54,16 @@ typedef struct
 extern tw_peid tsp_map(tw_lpid gid);
 extern tw_lpid get_lp_gid(int city, int place);
 extern int get_city_from_gid(tw_lpid gid);
+extern int get_place_from_gid(tw_lpid gid);
+
+//TOUR STUFF ------------------------------
+extern uint8_t get_bit(uint64_t bits, uint8_t pos);
+extern uint8_t get_bit_rev(uint64_t bits, uint8_t pos);
+extern uint64_t set_bit(uint64_t bits, uint8_t pos, uint8_t value);
+extern uint8_t isInTour(int city, int endPlace, compact_tour_part_t *tour);
+extern void addToTour(int city, int place, compact_tour_part_t *tour);
+extern void decodeTour(compact_tour_part_t *encodedTour, int *decodedTour);
+extern tw_lpid get_first_gid_in_tour(compact_tour_part_t *tour);
 
 
 //DRIVER STUFF -----------------------------
@@ -79,16 +85,7 @@ extern int rand_range(int low, int high);
 
 extern tw_lptype model_lps[];
 
-tw_stime lookahead;
-unsigned int nlp_per_pe;
-unsigned int custom_LPs_per_pe;
-int total_actors;
-int total_cities;
 
-
-//GLOBALS
-
-int** weight_matrix;
 
 
 

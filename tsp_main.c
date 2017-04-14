@@ -54,10 +54,12 @@ void displayModelSettings()
 
           printf("Traveling Salesman Problem Solver Configuration:\n");
           printf("\tnnodes:       %i\n", tw_nnodes());
-          printf("\tg_tw_nlp:     %lu\n", g_tw_nlp);
+          printf("\tg_tw_nlp:     %llu\n", g_tw_nlp);
           printf("\tNLPs per PE:  %i\n", nlp_per_pe);
           printf("\tTotal Actors: %i\n", total_actors);
           printf("\tTotal Cities: %i\n", num_cities);
+          printf("\n");
+          printf("\tuint64s needed: %i\n",MAX_INTS_NEEDED);
 
           printf("\tAvl node count: %i\n", g_tw_avl_node_count);
 
