@@ -17,3 +17,8 @@ int get_city_from_gid(tw_lpid gid)
 {
      return gid%total_cities;
 }
+
+int get_place_from_gid(tw_lpid gid)
+{
+     return gid/total_cities;
+}
