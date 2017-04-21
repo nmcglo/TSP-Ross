@@ -22,7 +22,7 @@ unsigned int nlp_per_pe;
 unsigned int custom_LPs_per_pe;
 int total_actors;
 int total_cities;
-
+int L;
 
 //GLOBALS
 

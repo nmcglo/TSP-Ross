@@ -28,6 +28,7 @@ Neil McGlohon
 typedef struct
 {
      uint64_t min_tour[MAX_INTS_NEEDED];
+     int L;
      int* incomingWeights; //TODO for generalization, make into double
      tw_lpid* neighborIDs;
      int self_place;
@@ -36,6 +37,7 @@ typedef struct
      int min_tour_weight;
      int num_neighbors;
      int msgs_sent;
+     int msgs_rcvd;
      unsigned int complete_tour_msgs_rcvd;
 } tsp_actor_state;
 
@@ -47,6 +49,7 @@ typedef struct
      tw_lpid sender;
      int saved_rng_count;
      int saved_complete_tours;
+     int saved_msgs_rcvd;
 } tsp_mess;
 
 
