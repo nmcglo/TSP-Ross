@@ -27,7 +27,6 @@ Neil McGlohon
 //TODO order the declarations to optimize memory usage
 typedef struct
 {
-     uint64_t min_tour[MAX_INTS_NEEDED];
      uint64_t min_complete_tour[MAX_INTS_NEEDED];
      int* incomingWeights; //TODO for generalization, make into double
      int* outgoingWeights;
@@ -36,13 +35,14 @@ typedef struct
      int self_place;
      int self_city;
      int rng_count;
-     int min_tour_weight;
+     // int min_tour_weight;
      int min_complete_tour_weight;
      int num_incoming_neighbors;
      int num_outgoing_neighbors;
      int msgs_sent;
      int msgs_rcvd;
      unsigned int complete_tour_msgs_rcvd;
+     unsigned int self_complete_tours_made;
 } tsp_actor_state;
 
 typedef enum
