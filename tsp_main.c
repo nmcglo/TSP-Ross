@@ -30,7 +30,6 @@ tw_lptype model_lps[] =
 int num_cities= 4;
 int min_fanout= 1;
 int max_fanout= 4;
-int max_len_valid = 100000000;
 
 //Command line opts
 const tw_optdef model_opts[] = {
@@ -38,7 +37,6 @@ const tw_optdef model_opts[] = {
      TWOPT_UINT("cities", num_cities, "Total cities in simulation"),
      TWOPT_UINT("minfanout", min_fanout, "Min Fanout of graph nodes (Not implemented yet)"),
      TWOPT_UINT("maxfanout", max_fanout, "Max Fanout of graph nodes (Not Implemented yet)"),
-     TWOPT_UINT("maxlen", max_len_valid, "Maximum length of a valid tour (TSP-Decision: NP-Complete Version)"),
      TWOPT_END()
 };
 
@@ -60,7 +58,6 @@ void displayModelSettings()
           printf("\tNLPs per PE:  %i\n", nlp_per_pe);
           printf("\tTotal Actors: %i\n", total_actors);
           printf("\tTotal Cities: %i\n", num_cities);
-          printf("\tMax Length Valid Tour: %i\n",max_len_valid);
           printf("\n");
           printf("\tuint64s needed: %i\n",MAX_INTS_NEEDED);
 
@@ -90,8 +87,6 @@ int rand_range(int low, int high)
 void initialize()
 {
      total_cities = num_cities;
-
-     L = max_len_valid;
 
      weight_matrix = (int**) calloc(num_cities,sizeof(int*));
      int i;
