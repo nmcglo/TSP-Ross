@@ -29,7 +29,6 @@ typedef struct
 {
      uint64_t min_tour[MAX_INTS_NEEDED];
      uint64_t min_complete_tour[MAX_INTS_NEEDED];
-     int L;
      int* incomingWeights; //TODO for generalization, make into double
      int* outgoingWeights;
      tw_lpid* incomingNeighborIDs;
