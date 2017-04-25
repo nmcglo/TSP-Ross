@@ -41,6 +41,7 @@ typedef struct
      int num_outgoing_neighbors;
      int msgs_sent;
      int msgs_rcvd;
+     int mess_since_commit;
      unsigned int complete_tour_msgs_rcvd;
      unsigned int self_complete_tours_made;
 } tsp_actor_state;
@@ -85,7 +86,7 @@ extern void tsp_init (tsp_actor_state *s, tw_lp *lp);
 extern void tsp_prerun(tsp_actor_state *s, tw_lp *lp);
 extern void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
 extern void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
-extern void tsp_commit(tsp_actor_state*s, tw_lp *lp);
+extern void tsp_commit(tsp_actor_state*s,tw_bf *bf, tsp_mess *in_msg, tw_lp *lp);
 extern void tsp_final(tsp_actor_state *s, tw_lp *lp);
 
 

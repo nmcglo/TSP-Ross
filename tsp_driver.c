@@ -111,7 +111,7 @@ void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
      {
           if(s->self_city == 0)
           {
-               double init_time = tw_rand_unif(lp->rng);
+               double init_time = tw_rand_unif(lp->rng)*jitter;
 
                tw_event *e = tw_event_new(self,init_time,lp);
                tsp_mess *mess = tw_event_data(e);
@@ -163,7 +163,7 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
                int weight_to_original = weight_matrix[city][s->self_city];
                tw_lpid recipient = get_lp_gid( city ,s->self_place+1);
 
-               tw_stime delay = weight_to_original*100 + tw_rand_unif(lp->rng)*.00001;
+               tw_stime delay = weight_to_original*weight_multiplier + tw_rand_unif(lp->rng)*jitter;
 
 
                tw_event *e = tw_event_new(recipient,delay,lp);
@@ -187,22 +187,27 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
 
                     if(found == 0)
                     {
-                         s->msgs_sent++;
-                         s->rng_count++;
+                         if((new_tour_weight+weight_matrix[neighbor_city_id][s->self_city]) < s->min_complete_tour_weight)
+                         {
+                              s->msgs_sent++;
+                              s->rng_count++;
 
-                         tw_lpid recipient = get_lp_gid(neighbor_city_id,s->self_place+1);
+                              tw_lpid recipient = get_lp_gid(neighbor_city_id,s->self_place+1);
 
-                         tw_stime delay = weight_matrix[neighbor_city_id][s->self_city]*100 + tw_rand_unif(lp->rng)*.01;
+                              tw_stime delay = weight_matrix[neighbor_city_id][s->self_city]*weight_multiplier + tw_rand_unif(lp->rng)*jitter;
 
-                         tw_event *e = tw_event_new(recipient,delay,lp);
-                         tsp_mess *mess = tw_event_data(e);
-                         mess->sender = lp->gid;
-                         mess->messType = TOUR;
-                         mess->tour_weight = new_tour_weight;
+                              tw_event *e = tw_event_new(recipient,delay,lp);
+                              tsp_mess *mess = tw_event_data(e);
+                              mess->sender = lp->gid;
+                              mess->messType = TOUR;
+                              mess->tour_weight = new_tour_weight;
 
-                         copy_uint64_array(working_tour,mess->tour_history,MAX_INTS_NEEDED);
+                              copy_uint64_array(working_tour,mess->tour_history,MAX_INTS_NEEDED);
 
-                         tw_event_send(e);
+                              tw_event_send(e);
+                              s->mess_since_commit++;
+                         }
+
                     }
                }
           }
@@ -225,13 +230,17 @@ void tsp_broadcast_complete(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_
           for(int j = 0; j < total_cities+1; j++)
           {
                tw_lpid recipient = get_lp_gid(i ,j);
-               tw_event *e = tw_event_new(recipient,tw_rand_unif(lp->rng)*.01,lp);
+               double delay = tw_rand_unif(lp->rng) * jitter;
+               tw_event *e = tw_event_new(recipient,delay,lp);
                tsp_mess *mess = tw_event_data(e);
                mess->sender = lp->gid;
                mess->messType = COMPLETE;
                copy_uint64_array(s->min_complete_tour,mess->tour_history,MAX_INTS_NEEDED);
                mess->tour_weight = s->min_complete_tour_weight;
                tw_event_send(e);
+
+               s->rng_count++;
+               s->msgs_sent++;
           }
      }
 }
@@ -243,23 +252,19 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
      in_msg->saved_msgs_rcvd = s->msgs_rcvd;
 
 
+
+
      switch(in_msg->messType)
      {
           case TOUR: //add and propogate the tour message
           {
                s->msgs_rcvd++;
 
-               // printf("%d,%d: Received TOUR mess\n",s->self_city,s->self_place);
-
-               int incoming_city = get_city_from_gid(in_msg->sender);
-               // printf("%d,%d:Incoming City: %d\n",s->self_city,s->self_place,incoming_city);
-
                compact_tour_part_t working_tour[MAX_INTS_NEEDED];
-
                copy_uint64_array(in_msg->tour_history,working_tour,MAX_INTS_NEEDED);
-
                addToTour(s->self_city,s->self_place,working_tour);
 
+               int incoming_city = get_city_from_gid(in_msg->sender);
                int neighborIndex = 0;
                for(int i = 0; i < s->num_incoming_neighbors; i++)
                {
@@ -278,52 +283,41 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
 
                if((new_tour_weight < s->min_complete_tour_weight))
                {
-                    printf("%i < %i\n",new_tour_weight,s->min_complete_tour_weight);
-                    // printf("%i,%i: new tour weight: %i\n",s->self_city,s->self_place,new_tour_weight);
+                    if(lp->pe->GVT < s->min_complete_tour_weight)
+                    {
                          if(s->self_place == total_cities) //you're the last city in the tour
                          {
-
                               if(new_tour_weight < (s->min_complete_tour_weight))
                               {
                                    printf("NEW BEST COMPLETE TOUR FOUND %i\n",new_tour_weight);
 
                                    s->min_complete_tour_weight = new_tour_weight;
 
-
                                    copy_uint64_array(working_tour,s->min_complete_tour,MAX_INTS_NEEDED);
                                    tsp_broadcast_complete(s,bf,in_msg,lp);
                               }
                               s->self_complete_tours_made++;
-
                          }
-                         else{
+                         else
+                         {
                               //forward to the neighbors not currently in the tour
                               tsp_propogate_message(s, bf, in_msg, lp, working_tour, new_tour_weight);
                          }
-
-
+                    }
                }
 
           }break;
           case COMPLETE: //you're receiving a complete tour message, stop propogating weaker tours
           {
-               // printf("%d,%d: Received COMPLETE mess\n",s->self_city,s->self_place);
                s->complete_tour_msgs_rcvd++;
-               if(in_msg->tour_weight <= s->min_complete_tour_weight)
+               if(in_msg->tour_weight < s->min_complete_tour_weight)
                {
-                    // printf("%d,%d: updating min tour weight\n",s->self_city,s->self_place);
                     s->min_complete_tour_weight = in_msg->tour_weight;
 
                     copy_uint64_array(in_msg->tour_history,s->min_complete_tour,MAX_INTS_NEEDED);
                }
           }break;
      }
-
-
-
-
-
-     // free(working_tour);
 }
 
 void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
@@ -339,11 +333,12 @@ void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp
      s->rng_count = in_msg->saved_rng_count;
      s->complete_tour_msgs_rcvd = in_msg->saved_complete_tours;
      s->msgs_rcvd = in_msg->saved_msgs_rcvd;
+     // s->min_complete_tour_weight = in_msg->saved_min_complete_tour_weight;
 }
 
-void tsp_commit(tsp_actor_state *s, tw_lp *lp)
+void tsp_commit(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
 {
-     // printf("%d: Sent Messages: %i\n",s->self_city, s->msgs_sent);
+
 }
 
 void tsp_final(tsp_actor_state *s, tw_lp *lp)
