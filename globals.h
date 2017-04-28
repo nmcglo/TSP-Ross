@@ -4,7 +4,7 @@
 #define FALSE 0
 #define TRUE 1
 
-#define MAX_TOUR_LENGTH 16
+#define MAX_TOUR_LENGTH 21
 #define MIN_CITY_SEPARATION 1
 #define MAX_CITY_SEPARATION 100
 

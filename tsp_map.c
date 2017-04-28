@@ -5,6 +5,7 @@
 //return the PE (aka node, MPI Rank)
 tw_peid tsp_map(tw_lpid gid)
 {
+     // if(gid/g_tw_nlp == 4)
      return (tw_peid) gid / g_tw_nlp;
 }
 

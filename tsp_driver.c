@@ -101,6 +101,8 @@ void tsp_init (tsp_actor_state *s, tw_lp *lp)
                printf("\n");
           }
      }
+
+     // printf("%i => %i\n",lp->gid,tsp_map(lp->gid));
 }
 
 void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
