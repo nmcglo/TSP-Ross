@@ -61,6 +61,7 @@ typedef struct
      int saved_rng_count;
      int saved_complete_tours;
      int saved_msgs_rcvd;
+     int saved_min_complete_tour_weight;
      tsp_msg_type messType;
 } tsp_mess;
 

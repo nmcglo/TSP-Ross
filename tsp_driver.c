@@ -252,7 +252,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
      in_msg->saved_rng_count = s->rng_count;
      in_msg->saved_complete_tours = s->complete_tour_msgs_rcvd;
      in_msg->saved_msgs_rcvd = s->msgs_rcvd;
-
+     in_msg->saved_min_complete_tour_weight = s->min_complete_tour_weight;
 
 
 
@@ -335,7 +335,7 @@ void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp
      s->rng_count = in_msg->saved_rng_count;
      s->complete_tour_msgs_rcvd = in_msg->saved_complete_tours;
      s->msgs_rcvd = in_msg->saved_msgs_rcvd;
-     // s->min_complete_tour_weight = in_msg->saved_min_complete_tour_weight;
+     s->min_complete_tour_weight = in_msg->saved_min_complete_tour_weight;
 }
 
 void tsp_commit(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
