@@ -253,6 +253,7 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
      in_msg->saved_complete_tours = s->complete_tour_msgs_rcvd;
      in_msg->saved_msgs_rcvd = s->msgs_rcvd;
      in_msg->saved_min_complete_tour_weight = s->min_complete_tour_weight;
+     in_msg->saved_self_complete_tours_made = s->self_complete_tours_made;
 
 
 
@@ -260,50 +261,56 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
      {
           case TOUR: //add and propogate the tour message
           {
-               s->msgs_rcvd++;
-
-               compact_tour_part_t working_tour[MAX_INTS_NEEDED];
-               copy_uint64_array(in_msg->tour_history,working_tour,MAX_INTS_NEEDED);
-               addToTour(s->self_city,s->self_place,working_tour);
-
-               int incoming_city = get_city_from_gid(in_msg->sender);
-               int neighborIndex = 0;
-               for(int i = 0; i < s->num_incoming_neighbors; i++)
+               // if(tw_now(lp) > 203)
+               //      printf("Received TOUR after 203\n");
+               tw_stime now = tw_now(lp);
+               if(now < s->min_complete_tour_weight)
                {
-                    if(s->incomingNeighborIDs[i] == incoming_city)
-                    {
-                         neighborIndex = i;
-                         break;
-                    }
-               }
+                    s->msgs_rcvd++;
 
-               int new_tour_weight;
-               if(s->self_place > 0) //not the first city in tour
-                    new_tour_weight = in_msg->tour_weight + s->incomingWeights[neighborIndex];
-               else
-                    new_tour_weight = 0; //the first city in the tour doesn't have an incoming weight
+                    compact_tour_part_t working_tour[MAX_INTS_NEEDED];
+                    copy_uint64_array(in_msg->tour_history,working_tour,MAX_INTS_NEEDED);
+                    addToTour(s->self_city,s->self_place,working_tour);
 
-               if((new_tour_weight < s->min_complete_tour_weight))
-               {
-                    if(lp->pe->GVT < s->min_complete_tour_weight)
+                    int incoming_city = get_city_from_gid(in_msg->sender);
+                    int neighborIndex = 0;
+                    for(int i = 0; i < s->num_incoming_neighbors; i++)
                     {
-                         if(s->self_place == total_cities) //you're the last city in the tour
+                         if(s->incomingNeighborIDs[i] == incoming_city)
                          {
-                              if(new_tour_weight < (s->min_complete_tour_weight))
-                              {
-                                   printf("NEW BEST COMPLETE TOUR FOUND %i\n",new_tour_weight);
-
-                                   s->min_complete_tour_weight = new_tour_weight;
-
-                                   copy_uint64_array(working_tour,s->min_complete_tour,MAX_INTS_NEEDED);
-                                   tsp_broadcast_complete(s,bf,in_msg,lp);
-                              }
-                              s->self_complete_tours_made++;
+                              neighborIndex = i;
+                              break;
                          }
-                         else
+                    }
+
+                    int new_tour_weight;
+                    if(s->self_place > 0) //not the first city in tour
+                         new_tour_weight = in_msg->tour_weight + s->incomingWeights[neighborIndex];
+                    else
+                         new_tour_weight = 0; //the first city in the tour doesn't have an incoming weight
+
+                    if((new_tour_weight < s->min_complete_tour_weight))
+                    {
+                         if(lp->pe->GVT < s->min_complete_tour_weight)
                          {
-                              //forward to the neighbors not currently in the tour
-                              tsp_propogate_message(s, bf, in_msg, lp, working_tour, new_tour_weight);
+                              if(s->self_place == total_cities) //you're the last city in the tour
+                              {
+                                   if(new_tour_weight < (s->min_complete_tour_weight))
+                                   {
+                                        printf("NEW BEST COMPLETE TOUR FOUND %i\n",new_tour_weight);
+
+                                        s->min_complete_tour_weight = new_tour_weight;
+
+                                        copy_uint64_array(working_tour,s->min_complete_tour,MAX_INTS_NEEDED);
+                                        tsp_broadcast_complete(s,bf,in_msg,lp);
+                                   }
+                                   s->self_complete_tours_made++;
+                              }
+                              else
+                              {
+                                   //forward to the neighbors not currently in the tour
+                                   tsp_propogate_message(s, bf, in_msg, lp, working_tour, new_tour_weight);
+                              }
                          }
                     }
                }
@@ -311,6 +318,8 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
           }break;
           case COMPLETE: //you're receiving a complete tour message, stop propogating weaker tours
           {
+               // printf("Received COMPLETE\n");
+
                s->complete_tour_msgs_rcvd++;
                if(in_msg->tour_weight < s->min_complete_tour_weight)
                {
@@ -332,6 +341,7 @@ void tsp_RC_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp
      {
           tw_rand_reverse_unif(lp->rng);
      }
+     s->self_complete_tours_made = in_msg->saved_self_complete_tours_made;
      s->rng_count = in_msg->saved_rng_count;
      s->complete_tour_msgs_rcvd = in_msg->saved_complete_tours;
      s->msgs_rcvd = in_msg->saved_msgs_rcvd;

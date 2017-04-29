@@ -134,7 +134,7 @@ int lif_main(int argc, char** argv, char **env)
 
 
      g_tw_nlp = (total_actors);
-     g_tw_lookahead = jitter * .01;
+     g_tw_lookahead = jitter * .001;
      custom_LPs_per_pe = ceil((double)g_tw_nlp/tw_nnodes());
 
      nlp_per_pe = custom_LPs_per_pe;
