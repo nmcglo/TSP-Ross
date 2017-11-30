@@ -1,6 +1,8 @@
 # TSP-Ross
 ROSS implementation of TSP solver.
 
+Note: I've stopped working on this project for numerous reasons. The prospect of solving TSP in general is a challenging one - doing it efficiently in any manner is a long shot. This project was to evaluate the idea of discrete event simulation being used to solve TSP and general integer programming problems. It also was aimed as being a stepping stone for a TSP solver on neuromorphic hardware. Both were lofty goals and unfortunately most graduate students don't have unlimited funding for lofty goal projects. For a full writeup of this project and preliminary results, please see the report pdf in this repo.
+
 # Installation
 
 This model requires the installation of [ROSS](http://github.com/carothersc/ROSS). After cloning the ROSS repository, follow the installation instructions in the ROSS repository to install.
