@@ -7,10 +7,14 @@ Neil McGlohon
 
 
 //Includes
-#include "tsp.h"
-#include "tsp_tour.h"
 
 
+#include "tsp.hpp"
+#include "globals.hpp"
+
+#include <map>
+#include <set>
+#include <vector>
 
 
 void copy_uint64_array(uint64_t* src, uint64_t* dest, int len)
@@ -37,7 +41,6 @@ void print_tour(compact_tour_part_t * tour)
      }
 }
 
-//--------------LIF Neuron stuff-------------
 
 void tsp_init (tsp_actor_state *s, tw_lp *lp)
 {
@@ -51,11 +54,11 @@ void tsp_init (tsp_actor_state *s, tw_lp *lp)
 
      s->msgs_sent = 0;
      s->msgs_rcvd = 0;
-     s->incomingWeights = calloc(total_cities,sizeof(int));
-     s->incomingNeighborIDs = calloc(total_cities,sizeof(tw_lpid));
+     s->incomingWeights = (int*)calloc(total_cities,sizeof(int));
+     s->incomingNeighborIDs = (tw_lpid*)calloc(total_cities,sizeof(tw_lpid));
 
-     s->outgoingWeights = calloc(total_cities,sizeof(int));
-     s->outgoingNeighborIDs = calloc(total_cities,sizeof(tw_lpid));
+     s->outgoingWeights = (int*)calloc(total_cities,sizeof(int));
+     s->outgoingNeighborIDs = (tw_lpid*)calloc(total_cities,sizeof(tw_lpid));
 
      for(int i = 0; i<MAX_INTS_NEEDED;i++)
      {
@@ -103,6 +106,9 @@ void tsp_init (tsp_actor_state *s, tw_lp *lp)
      }
 
      // printf("%i => %i\n",lp->gid,tsp_map(lp->gid));
+
+
+
 }
 
 void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
@@ -116,7 +122,7 @@ void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
                double init_time = tw_rand_unif(lp->rng)*jitter;
 
                tw_event *e = tw_event_new(self,init_time,lp);
-               tsp_mess *mess = tw_event_data(e);
+               tsp_mess *mess = (tsp_mess*)tw_event_data(e);
                mess->sender = self;
                // mess->recipient = self;
                for(int i = 0; i<MAX_INTS_NEEDED;i++)
@@ -169,7 +175,7 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
 
 
                tw_event *e = tw_event_new(recipient,delay,lp);
-               tsp_mess *mess = tw_event_data(e);
+               tsp_mess *mess = (tsp_mess*)tw_event_data(e);
                mess->sender = lp->gid;
                mess->tour_weight = new_tour_weight;
                mess->messType = TOUR;
@@ -199,7 +205,7 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
                               tw_stime delay = weight_matrix[neighbor_city_id][s->self_city]*weight_multiplier + tw_rand_unif(lp->rng)*jitter;
 
                               tw_event *e = tw_event_new(recipient,delay,lp);
-                              tsp_mess *mess = tw_event_data(e);
+                              tsp_mess *mess = (tsp_mess*)tw_event_data(e);
                               mess->sender = lp->gid;
                               mess->messType = TOUR;
                               mess->tour_weight = new_tour_weight;
@@ -234,7 +240,7 @@ void tsp_broadcast_complete(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_
                tw_lpid recipient = get_lp_gid(i ,j);
                double delay = tw_rand_unif(lp->rng) * jitter;
                tw_event *e = tw_event_new(recipient,delay,lp);
-               tsp_mess *mess = tw_event_data(e);
+               tsp_mess *mess = (tsp_mess*)tw_event_data(e);
                mess->sender = lp->gid;
                mess->messType = COMPLETE;
                copy_uint64_array(s->min_complete_tour,mess->tour_history,MAX_INTS_NEEDED);
@@ -328,6 +334,11 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                     copy_uint64_array(in_msg->tour_history,s->min_complete_tour,MAX_INTS_NEEDED);
                }
           }break;
+
+          case CREDIT:
+          {
+               printf("%d: credit message received from %d",s->self_city, in_msg->sender);
+          }break;
      }
 }
 
@@ -381,3 +392,4 @@ void tsp_final(tsp_actor_state *s, tw_lp *lp)
 
 
 }
+

@@ -1,6 +1,14 @@
 #ifndef globals_h
 #define globals_h
 
+#include "ross.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include <stdint.h>
+
+
 #define FALSE 0
 #define TRUE 1
 
@@ -12,22 +20,20 @@
 #define MAX_INTS_NEEDED ((BITS_TO_ENCODE_TOUR / 64)+1)
 
 
-
-
 typedef uint64_t compact_tour_part_t;
 
-double jitter;
-double weight_multiplier;
+extern double jitter;
+extern double weight_multiplier;
 
-tw_stime lookahead;
-unsigned int nlp_per_pe;
-unsigned int custom_LPs_per_pe;
-int total_actors;
-int total_cities;
+extern tw_stime lookahead;
+extern unsigned int nlp_per_pe;
+extern unsigned int custom_LPs_per_pe;
+extern int total_actors;
+extern int total_cities;
 
 //GLOBALS
 
-int** weight_matrix;
+extern int** weight_matrix;
 
 
 #endif

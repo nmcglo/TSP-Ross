@@ -1,7 +1,5 @@
-#ifndef _tsp_tour_h
-#define _tsp_tour_h
 
-// #include "tsp.h"
+#include "tsp_tour.hpp"
 
 uint8_t get_bit(uint64_t bits, uint8_t pos)
 {
@@ -91,6 +89,3 @@ tw_lpid get_first_gid_in_tour(compact_tour_part_t *tour)
      return(64*part + offset);
 }
 
-
-
-#endif

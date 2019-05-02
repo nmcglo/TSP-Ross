@@ -9,20 +9,34 @@ Neil McGlohon
 #ifndef _tsp_h
 #define _tsp_h
 
-#include "ross.h"
-#include "globals.h"
+#include "globals.hpp"
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
-#include <stdint.h>
-
-
+#include <vector>
+#include <map>
 
 
 //STRUCTS ------------------------------
 
+typedef enum
+{
+     TOUR = 1,
+     COMPLETE,
+     CREDIT
+} tsp_msg_type;
+
+
+typedef struct
+{
+     uint64_t tour_history[MAX_INTS_NEEDED];
+     int tour_weight;
+     tw_lpid sender;
+     int saved_rng_count;
+     int saved_complete_tours;
+     int saved_self_complete_tours_made;
+     int saved_msgs_rcvd;
+     int saved_min_complete_tour_weight;
+     tsp_msg_type messType;
+} tsp_mess;
 
 //TODO order the declarations to optimize memory usage
 typedef struct
@@ -44,28 +58,10 @@ typedef struct
      int mess_since_commit;
      unsigned int complete_tour_msgs_rcvd;
      unsigned int self_complete_tours_made;
+     std::vector<tsp_mess*> pending_messages;
+     std::vector<tsp_mess*> processing_messages;
+     std::map<tw_lpid, int> credit_map;
 } tsp_actor_state;
-
-typedef enum
-{
-     TOUR = 1,
-     COMPLETE
-} tsp_msg_type;
-
-
-typedef struct
-{
-     uint64_t tour_history[MAX_INTS_NEEDED];
-     int tour_weight;
-     tw_lpid sender;
-     int saved_rng_count;
-     int saved_complete_tours;
-     int saved_self_complete_tours_made;
-     int saved_msgs_rcvd;
-     int saved_min_complete_tour_weight;
-     tsp_msg_type messType;
-} tsp_mess;
-
 
 //MAPPING -----------------------------
 extern tw_peid tsp_map(tw_lpid gid);
@@ -103,10 +99,5 @@ extern int rand_range(int low, int high);
 extern tw_lptype model_lps[];
 
 
-
-
-
-
-
-
 #endif
+

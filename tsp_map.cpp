@@ -1,4 +1,4 @@
-#include "tsp.h"
+#include "tsp.hpp"
 
 
 //Given an LP's GID (global ID)

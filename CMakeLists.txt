@@ -17,12 +17,13 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/model_config.h PROPERTIE
 
 # All source files for the model
 SET(tsps_srcs
-	globals.h
-	tsp_tour.h
-	tsp.h
-	tsp_main.c
-	tsp_driver.c
-	tsp_map.c
+	tsp.hpp
+	globals.hpp
+	tsp_tour.hpp
+	tsp_main.cpp
+	tsp_driver.cpp
+	tsp_tour.cpp
+	tsp_map.cpp
 	model_config.h
 )
 

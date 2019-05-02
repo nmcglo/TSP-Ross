@@ -5,7 +5,19 @@ Neil McGlohon
 */
 
 //includes
-#include "tsp.h"
+#include "tsp.hpp"
+#include "globals.hpp"
+
+double jitter = 0.0;
+double weight_multiplier = 0.0;
+
+tw_stime lookahead = 0;
+unsigned int nlp_per_pe = 0;
+unsigned int custom_LPs_per_pe = 0;
+int total_actors = 0;
+int total_cities = 0;
+
+int** weight_matrix;
 
 
 tw_lptype model_lps[] =
