@@ -16,6 +16,8 @@ Neil McGlohon
 #include <set>
 #include <vector>
 
+#define NUM_CREDITS 5
+
 
 void copy_uint64_array(uint64_t* src, uint64_t* dest, int len)
 {
@@ -105,10 +107,14 @@ void tsp_init (tsp_actor_state *s, tw_lp *lp)
           }
      }
 
+     s->credit_map = std::map<tw_lpid, int>();
+
      // printf("%i => %i\n",lp->gid,tsp_map(lp->gid));
-
-
-
+     for(int i=0; i < s->num_outgoing_neighbors; i++)
+     {
+          tw_lpid lid = get_lp_gid(i, s->self_place+1);
+          s->credit_map.emplace(lid,5);
+     }
 }
 
 void tsp_prerun(tsp_actor_state *s, tw_lp *lp)
@@ -182,7 +188,15 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
 
                copy_uint64_array(working_tour,mess->tour_history,MAX_INTS_NEEDED);
 
-               tw_event_send(e);
+               if (s->credit_map[recipient] > 0 )
+               {
+                    tw_event_send(e);
+               }
+               else
+               {
+                    s->pending_messages.push_back(e);
+               }
+               
 
           }
           else
@@ -337,8 +351,13 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
 
           case CREDIT:
           {
-               printf("%d: credit message received from %d",s->self_city, in_msg->sender);
+               printf("%d: credit message received from %d\n",s->self_city, in_msg->sender);
           }break;
+
+          case BUFF:
+          {
+               printf("%d: buff message recieved\n");
+          }
      }
 }
 
@@ -390,6 +409,4 @@ void tsp_final(tsp_actor_state *s, tw_lp *lp)
 
      // printf("%i,%i: Messages Received: %i\n",s->self_city,s->self_place,s->msgs_rcvd);
 
-
 }
-

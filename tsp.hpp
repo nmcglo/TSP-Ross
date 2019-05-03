@@ -21,7 +21,8 @@ typedef enum
 {
      TOUR = 1,
      COMPLETE,
-     CREDIT
+     CREDIT,
+     BUFF
 } tsp_msg_type;
 
 
@@ -58,7 +59,7 @@ typedef struct
      int mess_since_commit;
      unsigned int complete_tour_msgs_rcvd;
      unsigned int self_complete_tours_made;
-     std::vector<tsp_mess*> pending_messages;
+     std::vector<tw_event*> pending_messages;
      std::vector<tsp_mess*> processing_messages;
      std::map<tw_lpid, int> credit_map;
 } tsp_actor_state;
