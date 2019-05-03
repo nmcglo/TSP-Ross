@@ -16,7 +16,7 @@ Neil McGlohon
 #include <set>
 #include <vector>
 
-#define NUM_CREDITS 5
+#define NUM_CREDITS 1
 
 
 void copy_uint64_array(uint64_t* src, uint64_t* dest, int len)
@@ -158,7 +158,7 @@ int is_in_tour(int* tour, int len, int input)
 }
 
 
-void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_lp *lp, compact_tour_part_t working_tour[MAX_INTS_NEEDED], int new_tour_weight)
+void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp, compact_tour_part_t working_tour[MAX_INTS_NEEDED], int new_tour_weight)
 {
      int self_place = s->self_place;
 
@@ -191,13 +191,12 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
                if (s->credit_map[recipient] > 0 )
                {
                     tw_event_send(e);
+                    s->credit_map[recipient]--;
                }
                else
                {
                     s->pending_messages.push_back(e);
                }
-               
-
           }
           else
           {
@@ -233,6 +232,43 @@ void tsp_propogate_message(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_mst, tw_l
                     }
                }
           }
+     }
+}
+
+void tsp_send_credit(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
+{
+     tw_lpid recipient = in_msg->sender;
+     tw_stime delay = tw_rand_unif(lp->rng) * jitter;
+     tw_event *e = tw_event_new(recipient, delay,lp);
+     tsp_mess *mess = (tsp_mess*)tw_event_data(e);
+     mess->sender = lp->gid;
+     mess->messType = CREDIT;
+     tw_event_send(e);
+}
+
+void tsp_credit_receive(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
+{
+     s->credit_map[in_msg->sender]++;
+
+     if (s->credit_map[in_msg->sender] > 1)
+          printf("whoops!!\n");
+     double delay = tw_rand_unif(lp->rng) * jitter;
+     tw_event *e = tw_event_new(lp->gid, delay, lp);
+     tsp_mess *mess = (tsp_mess*)tw_event_data(e);
+     mess->sender = lp->gid;
+     mess->messType = BUFF;
+
+     s->rng_count++;
+}
+
+void tsp_buffer_update(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *lp)
+{
+     int len = s->pending_messages.size();
+
+     for(int i = 0; i < len; i++)
+     {
+          tw_event *e = *(s->pending_messages.erase(s->pending_messages.begin()));
+          tw_event_send(e);
      }
 }
 
@@ -330,6 +366,8 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
                               {
                                    //forward to the neighbors not currently in the tour
                                    tsp_propogate_message(s, bf, in_msg, lp, working_tour, new_tour_weight);
+
+                                   tsp_send_credit(s, bf, in_msg, lp);
                               }
                          }
                     }
@@ -351,12 +389,12 @@ void tsp_event_handler(tsp_actor_state *s, tw_bf *bf, tsp_mess *in_msg, tw_lp *l
 
           case CREDIT:
           {
-               printf("%d: credit message received from %d\n",s->self_city, in_msg->sender);
+               tsp_credit_receive(s,bf,in_msg,lp);
           }break;
 
           case BUFF:
           {
-               printf("%d: buff message recieved\n");
+               tsp_buffer_update(s,bf,in_msg,lp);
           }
      }
 }
